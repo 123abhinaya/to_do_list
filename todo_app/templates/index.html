@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Smart To-Do App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body {
+    background: linear-gradient(135deg,#667eea,#764ba2);
+    min-height: 100vh;
+}
+
+.task-card {
+    animation: fadeIn 0.6s ease;
+    transition: transform 0.3s;
+}
+
+.task-card:hover {
+    transform: scale(1.02);
+}
+
+.pending { background:#fff3cd; }
+.completed { background:#d1e7dd; }
+.overdue { background:#f8d7da; }
+
+@keyframes fadeIn {
+    from {opacity:0; transform:translateY(20px);}
+    to {opacity:1;}
+}
+</style>
+</head>
+
+<body class="container py-4">
+
+<h2 class="text-center text-white mb-4">📝 Smart To-Do List</h2>
+
+<!-- ADD FORM -->
+<form class="row g-2 mb-4" action="/add" method="post">
+    <div class="col-md-4">
+        <input class="form-control" name="title" placeholder="Task name" required>
+    </div>
+    <div class="col-md-2">
+        <input class="form-control" name="deadline" type="number" min="1" placeholder="Time" required>
+    </div>
+    <div class="col-md-2">
+        <select class="form-select" name="unit">
+            <option value="hours">Hours</option>
+            <option value="days">Days</option>
+            <option value="months">Months</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-light w-100">Add Task</button>
+    </div>
+</form>
+
+<!-- TASK LIST -->
+<div class="row">
+{% for task in tasks %}
+    <div class="col-md-6 mb-3">
+        <div class="card task-card 
+            {% if task.status=='Completed' %}completed
+            {% elif task.status=='Overdue' %}overdue
+            {% else %}pending{% endif %}">
+            <div class="card-body">
+                <h5>{{ task.title }}</h5>
+
+                <p>Status:
+                    <span class="badge 
+                        {% if task.status=='Completed' %}bg-success
+                        {% elif task.status=='Overdue' %}bg-danger
+                        {% else %}bg-warning{% endif %}">
+                        {{ task.status }}
+                    </span>
+                </p>
+
+                {% if task.time_left > 0 %}
+                <p>⏳ Time left: {{ task.time_left // 3600 }} hrs</p>
+                {% else %}
+                <p>⏰ Time expired</p>
+                {% endif %}
+
+                <a href="/complete/{{ task.id }}" class="btn btn-success btn-sm">✔ Complete</a>
+                <a href="/delete/{{ task.id }}" class="btn btn-danger btn-sm">❌ Delete</a>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+</div>
+
+</body>
+</html>
