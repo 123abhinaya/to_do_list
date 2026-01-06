@@ -29,7 +29,11 @@ def index():
     updated_tasks = []
 
     for t in tasks:
-        time_left = (t["created_at"] + get_seconds(t["deadline"], t["unit"])) - now
+        seconds = get_seconds(t["deadline"], t["unit"])
+        if seconds is None:
+            time_left = 0  # or some default
+        else:
+            time_left = (t["created_at"] + seconds) - now
 
         if t["status"] != "Completed":
             if time_left <= 0:
@@ -49,19 +53,24 @@ def index():
 
 @app.route('/add', methods=['POST'])
 def add():
-    title = request.form['title']
-    deadline = int(request.form['deadline'])
-    unit = request.form['unit']
-    created_at = int(time.time())
+    try:
+        title = request.form['title']
+        deadline = int(request.form['deadline'])
+        unit = request.form['unit']
+        if unit not in ["hours", "days", "months"]:
+            unit = "hours"  # default
+        created_at = int(time.time())
 
-    conn = get_db()
-    conn.execute(
-        "INSERT INTO tasks (title, deadline, unit, created_at) VALUES (?,?,?,?)",
-        (title, deadline, unit, created_at)
-    )
-    conn.commit()
-    conn.close()
-    return redirect('/')
+        conn = get_db()
+        conn.execute(
+            "INSERT INTO tasks (title, deadline, unit, created_at) VALUES (?,?,?,?)",
+            (title, deadline, unit, created_at)
+        )
+        conn.commit()
+        conn.close()
+        return redirect('/')
+    except ValueError:
+        return "Invalid input", 400
 
 @app.route('/complete/<int:id>')
 def complete(id):
@@ -80,4 +89,4 @@ def delete(id):
     return redirect('/')
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
